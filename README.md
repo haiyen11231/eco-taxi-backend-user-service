@@ -15,7 +15,7 @@ eco-taxi-backend-user-service/
 │   ├── config.go                 # Main config loading
 │   ├── grpc_config.go            # gRPC-specific configuration
 │   ├── mysql_config.go           # MySQL-specific configuration
-│   └── redis.go                  # Redis-specific configuration
+│   └── redis_config.go           # Redis-specific configuration
 │
 ├── internal/
 │   ├── auth/
@@ -84,7 +84,7 @@ Contains configuration settings for various services like the database, Redis, a
 - **`config.go`**: Main configuration loader, orchestrating the loading of individual configurations.
 - **`grpc_config.go`**: gRPC-specific configuration settings.
 - **`mysql_config.go`**: MySQL database configuration settings.
-- **`redis.go`**: Redis-specific configuration settings.
+- **`redis_config.go`**: Redis-specific configuration settings.
 
 ### `internal/`
 
