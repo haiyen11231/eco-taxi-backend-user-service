@@ -4,15 +4,20 @@ import (
 	"context"
 
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/model"
+	"github.com/redis/go-redis"
 	"gorm.io/gorm"
 )
 
 type userRepo struct {
 	db *gorm.DB
+	rdb *redis.Client
 }
 
-func NewUserRepo(db *gorm.DB) *userRepo {
-	return &userRepo{db: db}
+func NewUserRepo(db *gorm.DB, rdb *redis.Client) *userRepo {
+	return &userRepo{
+		db: db,
+		rdb: rdb,
+	}
 }
 
 func (userRepo *userRepo) CreateUser(ctx context.Context, data *model.UserCreation) error {

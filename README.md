@@ -176,26 +176,6 @@ Contains API documentation, including Swagger files for generating and viewing A
    cd eco-taxi-backend-user-service
    ```
 
-### Create a `.env` File
-
-Create a `.env` file in the root directory of the project. This file should contain the environment variables required for the application to run. Here's a sample `.env` file:
-
-```env
-DB_USER=root
-DB_PASSWORD=yourpassword
-DB_NAME=yourdatabase
-DB_ROOT_PASSWORD=yourrootpassword
-REDIS_PASSWORD=yourredispassword
-```
-
-Update the values with your own configuration:
-
-- **`DB_USER`**: MySQL username.
-- **`DB_PASSWORD`**: MySQL user password.
-- **`DB_NAME`**: MySQL database name.
-- **`DB_ROOT_PASSWORD`**: MySQL root password.
-- **`REDIS_PASSWORD`**: Redis password.
-
 ### Build and Run the Docker Application
 
 Use Docker Compose to build and run the containers. This command will:
