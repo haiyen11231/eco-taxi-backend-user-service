@@ -1,37 +1,35 @@
 package model
 
 type User struct {
-	Id                int     `json:"id" gorm:"column:id"`
-	Name              string  `json:"name" gorm:"column:name"`
-	PhoneNumber       int     `json:"phone_number" gorm:"column:phone_number"`
-	Email             string  `json:"email" gorm:"column:email"`
-	HashedPass        string  `json:"hashed_password" gorm:"column:hashed_password"`
-	DistanceTravelled float64 `json:"distance_travelled" gorm:"column:distance_travelled"`
+	Id                int64   `json:"id" gorm:"column:id; primaryKey; autoIncrement"`
+	Name              string  `json:"name" gorm:"column:name; type:varchar(50)"`
+	PhoneNumber       string  `json:"phone_number" gorm:"column:phone_number; type:varchar(8)"`
+	Email             string  `json:"email" gorm:"column:email; type:varchar(50)"`
+	Password          string  `json:"password" gorm:"column:password; type:varchar(255)"`
+	DistanceTravelled float64 `json:"distance_travelled" gorm:"column:distance_travelled;default:0"`
 }
 
 func (User) TableName() string {
 	return "users"
 }
 
-type UserCreation struct {
-	Id          int    `json:"-" gorm:"column:id"`
-	Name        string `json:"name" gorm:"column:name"`
-	PhoneNumber int    `json:"phone_number" gorm:"column:phone_number"`
-	Email       string `json:"email" gorm:"column:email"`
-	Password    string `json:"password" gorm:"column:hashed_password"`
+// for signup and update
+type UserData struct {
+	Name        string `json:"name" gorm:"column:name; type:varchar(50)"`
+	PhoneNumber string `json:"phone_number" gorm:"column:phone_number; type:varchar(8)"`
+	Email       string `json:"email" gorm:"column:email; type:varchar(50)"`
+	Password    string `json:"password" gorm:"column:password; type:varchar(255)"`
 }
 
-func (UserCreation) TableName() string {
+func (UserData) TableName() string {
 	return User{}.TableName()
 }
 
-type UserUpdate struct {
-	Name        string `json:"name" gorm:"column:name"`
-	PhoneNumber int    `json:"phone_number" gorm:"column:phone_number"`
-	Email       string `json:"email" gorm:"column:email"`
-	Password    string `json:"password" gorm:"column:hashed_password"`
+type LogInUserData struct {
+	PhoneNumber string `json:"phone_number" gorm:"column:phone_number; type:varchar(8)"`
+	Password    string `json:"password" gorm:"column:password; type:varchar(255)"`
 }
 
-func (UserUpdate) TableName() string {
+func (LogInUserData) TableName() string {
 	return User{}.TableName()
 }

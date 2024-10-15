@@ -18,35 +18,25 @@ eco-taxi-backend-user-service/
 │   └── redis_config.go           # Redis-specific configuration
 │
 ├── internal/
-│   ├── auth/
-│   │   ├── auth.go               # Handles authentication-related logic (JWT, token generation)
-│   │   ├── middleware.go         # Middleware for authenticating incoming requests
-│   │   └── tokens.go             # Token management (JWT access + refresh tokens)
-│   │
 │   ├── model/                    # Models represent the data structure (MVC: Model)
-│   │   ├── user.go               # User entity definition (GORM model)
-│   │   └── auth_response.go      # Auth response model (tokens, expiry)
+│   │   └── user.go               # User entity definition (GORM model)
 │   │
 │   ├── repository/               # Handles database operations (MVC: Model)
 │   │   ├── user_repository.go    # User repository with GORM methods (CRUD operations)
 │   │   └── token_repository.go   # Manages refresh token storage and retrieval
 │   │
 │   ├── service/                  # Business logic (MVC: Controller)
-│   │   ├── user_service.go       # Core user-related logic (register, login, update profile)
-│   │   ├── validation_service.go # Handles input validation (email, phone number, password)
-│   │   ├── password_service.go   # Password hashing and validation
-│   │   └── jwt_service.go        # Manages JWT token generation, validation, and expiry
+│   │   └── user_service.go       # Core user-related logic (signup, login, update profile)
 │   │
 │   ├── route/                    # Handles API endpoints (MVC: Controller)
 │   │   ├── routes.go             # API route definitions (Gin handlers for each endpoint)
 │   │   └── swagger.go            # Swagger configuration for API documentation
 │   │
 │   ├── grpc/                     # gRPC communication setup
-│   │   ├── grpc_client.go        # gRPC client for communication with other services
-│   │   ├── grpc_server.go        # gRPC server for handling incoming requests
-│   │   └── proto/                # gRPC protobuf files
-│   │       ├── user.proto        # .proto files defining gRPC methods for user service
-│   │       └── other_protos.proto# Additional proto files
+│   │   ├── user_service.proto
+│   │   └── proto/
+│   │       ├── user_service_grpc.pb.go
+│   │       └── user_service.pb.go
 │   │
 │   └── script/
 │       └── migration/            # Database migration scripts (for versioning schema)
@@ -90,28 +80,17 @@ Contains configuration settings for various services like the database, Redis, a
 
 Contains the core application code, which includes authentication, business logic, database interactions, and gRPC setup.
 
-- **`auth/`**
-
-  - **`auth.go`**: Handles authentication-related logic, including JWT and token generation.
-  - **`middleware.go`**: Middleware for authenticating incoming HTTP requests using JWT tokens.
-  - **`tokens.go`**: Manages access and refresh token operations, including generation and validation.
-
 - **`model/`**
 
   - **`user.go`**: Defines the User entity with GORM annotations.
-  - **`auth_response.go`**: Represents the response structure for authentication (tokens, expiration, etc.).
 
 - **`repository/`**
 
   - **`user_repository.go`**: Handles CRUD operations for user data using GORM.
-  - **`token_repository.go`**: Manages storage and retrieval of refresh tokens in the database.
 
 - **`service/`**
 
   - **`user_service.go`**: Core business logic related to user registration, login, profile management, etc.
-  - **`validation_service.go`**: Validates inputs like email, phone number, and password.
-  - **`password_service.go`**: Provides functionality for password hashing and validation.
-  - **`jwt_service.go`**: Handles JWT token creation, validation, and expiration management.
 
 - **`route/`**
 
@@ -120,11 +99,10 @@ Contains the core application code, which includes authentication, business logi
 
 - **`grpc/`**
 
-  - **`grpc_client.go`**: Implements the gRPC client to communicate with other microservices.
-  - **`grpc_server.go`**: Implements the gRPC server for handling incoming gRPC requests.
-  - **`proto/`**
-    - **`user.proto`**: Defines the gRPC methods and messages for the User Service.
-    - **`other_protos.proto`**: Contains additional proto files for other related gRPC services.
+  - **`user_service.proto`**: Defines the gRPC methods and messages for the User Service.
+  - **`pb/`**
+    - **`user_service_grpc.pb.go`**
+    - **`user_service.pb.go`**
 
 - **`script/`**
   - **`migration/`**: Contains database migration scripts for versioning schema changes.
