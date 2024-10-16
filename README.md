@@ -34,7 +34,7 @@ eco-taxi-backend-user-service/
 │   │
 │   ├── grpc/                     # gRPC communication setup
 │   │   ├── user_service.proto
-│   │   └── proto/
+│   │   └── pb/
 │   │       ├── user_service_grpc.pb.go
 │   │       └── user_service.pb.go
 │   │

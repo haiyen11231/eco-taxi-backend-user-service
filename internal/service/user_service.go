@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -21,11 +20,6 @@ import (
 
 type UserServiceServer struct {
 	pb.UnimplementedUserServiceServer
-}
-
-type AuthClaims struct {
-	Id uint64 `json:"id,omitempty"`
-	jwt.RegisteredClaims
 }
 
 func (s *UserServiceServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (*pb.SignUpResponse, error) {
@@ -149,64 +143,67 @@ func (s *UserServiceServer) AuthenticateUser(ctx context.Context, req *pb.Authen
 		return &pb.AuthenticateUserResponse{Valid: false, Message: "Token is required"}, errors.New("Token is required")
 	}
 
-	claims, err := parseToken(req.Token, os.Getenv("JWT_SECRET"))
+	parsedId, err := parseToken(req.Token, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		log.Println("Failed to parse token:", err.Error())
 		return &pb.AuthenticateUserResponse{Valid: false, Message: err.Error()}, err
 	}
+	log.Printf("Extracted claims ID: %v", parsedId)
 
 	user := &model.User{}
-	err = config.DB.Model(&model.User{}).Where("id = ?", claims.Id).First(user).Error
+	err = config.DB.Model(&model.User{}).Where("id = ?", parsedId).First(user).Error
 	if err != nil || reflect.DeepEqual(user, &pb.User{}) {
 		log.Println("Failed to get users:", err.Error())
 		return &pb.AuthenticateUserResponse{Valid: false, Message: "Invalid Credentials!"}, errors.New("Invalid credentials")
 	}
 
+	log.Printf("User found with ID: %v", user.Id)
 	return &pb.AuthenticateUserResponse{Valid: true, Message: "Authenticated!", UserId: uint64(user.Id)}, nil
 }
 
 func generateToken(user *model.User) (string, error) {
-	now := time.Now()
-	expiry := time.Now().Add(time.Hour * 24 * 2)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, AuthClaims{
-		Id: uint64(user.Id),
-		RegisteredClaims: jwt.RegisteredClaims{
-			Audience:  jwt.ClaimStrings{"eco-taxi-user-service"},
-			ExpiresAt: jwt.NewNumericDate(expiry),
-			IssuedAt:  jwt.NewNumericDate(now),
-		},
+	// Creating the token with user ID and expiration time
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":  user.Id,
+		"exp": time.Now().Add(time.Hour * 24 * 2).Unix(),
 	})
+	
+	// Sign the token and return it as a string
 	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
 }
 
-func parseToken(tokenString, secret string) (claims AuthClaims, err error) {
-	decodedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func parseToken(tokenString, secret string) (int64, error) {
+	// Parsing the token
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Validate that the signing method is HMAC
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})
+
 	if err != nil {
-		return AuthClaims{}, err
+		log.Println("Error parsing token:", err)
+		return 0, err
 	}
 
-	if claims, ok := decodedToken.Claims.(jwt.MapClaims); ok && decodedToken.Valid &&
-		claims.VerifyAudience("eco-taxi-user-service", true) &&
-		claims.VerifyExpiresAt(time.Now().Unix(), true) &&
-		claims.VerifyIssuedAt(time.Now().Unix(), true) {
+	// Extract claims and validate them
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		// Verify token expiration
+		if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
+			return 0, errors.New("token expired")
+		}
 
-		authClaims := AuthClaims{}
-		b, err := json.Marshal(claims)
-		if err != nil {
-			return AuthClaims{}, err
+		// Convert the "id" claim to int64
+		idFloat, ok := claims["id"].(float64)
+		if !ok {
+			return 0, errors.New("invalid ID format in token")
 		}
-		err = json.Unmarshal(b, &authClaims)
-		if err != nil {
-			return AuthClaims{}, err
-		}
-		return authClaims, nil
+
+		return int64(idFloat), nil
 	}
-	return AuthClaims{}, err
+	return 0, errors.New("Invalid token")
 }
 
 // func GetUserById(db *gorm.DB) func(c *gin.Context) {
