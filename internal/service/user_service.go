@@ -43,20 +43,12 @@ func (s *UserServiceServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (
 	db := config.DB
 	userRepo := repository.NewUserRepo(db)
 
-	user, err := userRepo.SignUp(ctx, signUpData)
-
-	if err != nil {
+	if err := userRepo.SignUp(ctx, signUpData); err != nil {
 		log.Println("Failed to signup:", err.Error())
 		return nil, err
 	}
 
-	token, err := generateToken(user)
-	if err != nil {
-		log.Println("Failed to generate token:", err.Error())
-		return nil, errors.New("Invalid Phone Number or Password")
-	}
-
-	return &pb.SignUpResponse{Token: token}, nil
+	return &pb.SignUpResponse{Message: "User created!"}, nil
 }
 	
 func (s *UserServiceServer) LogIn(ctx context.Context, req *pb.LogInRequest) (*pb.LogInResponse, error) {

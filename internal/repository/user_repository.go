@@ -28,17 +28,12 @@ func NewUserRepo(db *gorm.DB) *userRepo {
 	}
 }
 
-func (userRepo *userRepo) SignUp(ctx context.Context, data *model.UserData) (*model.User, error) {
-	var user model.User
-	user.Email = data.Email
-
+func (userRepo *userRepo) SignUp(ctx context.Context, data *model.UserData) error {
 	if err := userRepo.db.Create(&data).Error; err != nil {
-		return nil, err
+		return err
 	}
 
-	userRepo.db.First(&user)
-
-	return &user, nil
+	return nil
 }
 
 func (userRepo *userRepo) LogIn(ctx context.Context, data *model.LogInUserData) (*model.User, error) {
