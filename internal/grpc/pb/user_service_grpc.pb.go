@@ -27,6 +27,7 @@ const (
 	UserService_ChangePassword_FullMethodName          = "/user_service.UserService/ChangePassword"
 	UserService_UpdateDistanceTravelled_FullMethodName = "/user_service.UserService/UpdateDistanceTravelled"
 	UserService_AuthenticateUser_FullMethodName        = "/user_service.UserService/AuthenticateUser"
+	UserService_GetToken_FullMethodName                = "/user_service.UserService/GetToken"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -41,6 +42,7 @@ type UserServiceClient interface {
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	UpdateDistanceTravelled(ctx context.Context, in *UpdateDistanceTravelledRequest, opts ...grpc.CallOption) (*UpdateDistanceTravelledResponse, error)
 	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
+	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
 }
 
 type userServiceClient struct {
@@ -131,6 +133,16 @@ func (c *userServiceClient) AuthenticateUser(ctx context.Context, in *Authentica
 	return out, nil
 }
 
+func (c *userServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTokenResponse)
+	err := c.cc.Invoke(ctx, UserService_GetToken_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
@@ -143,6 +155,7 @@ type UserServiceServer interface {
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	UpdateDistanceTravelled(context.Context, *UpdateDistanceTravelledRequest) (*UpdateDistanceTravelledResponse, error)
 	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
+	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -176,6 +189,9 @@ func (UnimplementedUserServiceServer) UpdateDistanceTravelled(context.Context, *
 }
 func (UnimplementedUserServiceServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthenticateUser not implemented")
+}
+func (UnimplementedUserServiceServer) GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetToken not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -342,6 +358,24 @@ func _UserService_AuthenticateUser_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTokenRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetToken(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetToken_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetToken(ctx, req.(*GetTokenRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -380,6 +414,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthenticateUser",
 			Handler:    _UserService_AuthenticateUser_Handler,
+		},
+		{
+			MethodName: "GetToken",
+			Handler:    _UserService_GetToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -45,5 +45,6 @@ func ConnectToMySQL() error {
 	DB = db
 	DB.AutoMigrate(&model.User{})
 	log.Println("Connected to MySQL!")
+	
 	return nil
 }

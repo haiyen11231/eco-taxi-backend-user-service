@@ -39,7 +39,7 @@ eco-taxi-backend-user-service/
 │   │       └── user_service.pb.go
 │   │
 │   └── script/
-│       └── migration/            # Database migration scripts (for versioning schema)
+│       └── migrations/            # Database migration scripts (for versioning schema)
 │
 ├── Dockerfile                    # Dockerfile for building the service container
 ├── docker-compose.yml            # Docker Compose file for local development with dependencies (optional if using Kubernetes)
