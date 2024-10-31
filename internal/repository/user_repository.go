@@ -13,15 +13,8 @@ import (
 
 type userRepo struct {
 	db *gorm.DB
-	// rdb *redis.Client
 }
 
-// func NewUserRepo(db *gorm.DB, rdb *redis.Client) *userRepo {
-// 	return &userRepo{
-// 		db: db,
-// 		rdb: rdb,
-// 	}
-// }
 func NewUserRepo(db *gorm.DB) *userRepo {
 	return &userRepo{
 		db: db,

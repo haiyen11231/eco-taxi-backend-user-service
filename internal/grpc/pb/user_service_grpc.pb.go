@@ -21,13 +21,14 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	UserService_SignUp_FullMethodName                  = "/user_service.UserService/SignUp"
 	UserService_LogIn_FullMethodName                   = "/user_service.UserService/LogIn"
+	UserService_LogOut_FullMethodName                  = "/user_service.UserService/LogOut"
 	UserService_ForgotPassword_FullMethodName          = "/user_service.UserService/ForgotPassword"
 	UserService_UpdateUser_FullMethodName              = "/user_service.UserService/UpdateUser"
 	UserService_GetUser_FullMethodName                 = "/user_service.UserService/GetUser"
 	UserService_ChangePassword_FullMethodName          = "/user_service.UserService/ChangePassword"
 	UserService_UpdateDistanceTravelled_FullMethodName = "/user_service.UserService/UpdateDistanceTravelled"
 	UserService_AuthenticateUser_FullMethodName        = "/user_service.UserService/AuthenticateUser"
-	UserService_GetToken_FullMethodName                = "/user_service.UserService/GetToken"
+	UserService_RefreshToken_FullMethodName            = "/user_service.UserService/RefreshToken"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -36,13 +37,15 @@ const (
 type UserServiceClient interface {
 	SignUp(ctx context.Context, in *SignUpRequest, opts ...grpc.CallOption) (*SignUpResponse, error)
 	LogIn(ctx context.Context, in *LogInRequest, opts ...grpc.CallOption) (*LogInResponse, error)
+	LogOut(ctx context.Context, in *LogOutRequest, opts ...grpc.CallOption) (*LogOutResponse, error)
 	ForgotPassword(ctx context.Context, in *ForgotPasswordRequest, opts ...grpc.CallOption) (*ForgotPasswordResponse, error)
 	UpdateUser(ctx context.Context, in *UpdateUserRequest, opts ...grpc.CallOption) (*UpdateUserResponse, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*ChangePasswordResponse, error)
 	UpdateDistanceTravelled(ctx context.Context, in *UpdateDistanceTravelledRequest, opts ...grpc.CallOption) (*UpdateDistanceTravelledResponse, error)
 	AuthenticateUser(ctx context.Context, in *AuthenticateUserRequest, opts ...grpc.CallOption) (*AuthenticateUserResponse, error)
-	GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error)
+	// rpc GetToken (GetTokenRequest) returns (GetTokenResponse);
+	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error)
 }
 
 type userServiceClient struct {
@@ -67,6 +70,16 @@ func (c *userServiceClient) LogIn(ctx context.Context, in *LogInRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LogInResponse)
 	err := c.cc.Invoke(ctx, UserService_LogIn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) LogOut(ctx context.Context, in *LogOutRequest, opts ...grpc.CallOption) (*LogOutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LogOutResponse)
+	err := c.cc.Invoke(ctx, UserService_LogOut_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -133,10 +146,10 @@ func (c *userServiceClient) AuthenticateUser(ctx context.Context, in *Authentica
 	return out, nil
 }
 
-func (c *userServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, opts ...grpc.CallOption) (*GetTokenResponse, error) {
+func (c *userServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*RefreshTokenResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetTokenResponse)
-	err := c.cc.Invoke(ctx, UserService_GetToken_FullMethodName, in, out, cOpts...)
+	out := new(RefreshTokenResponse)
+	err := c.cc.Invoke(ctx, UserService_RefreshToken_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -149,13 +162,15 @@ func (c *userServiceClient) GetToken(ctx context.Context, in *GetTokenRequest, o
 type UserServiceServer interface {
 	SignUp(context.Context, *SignUpRequest) (*SignUpResponse, error)
 	LogIn(context.Context, *LogInRequest) (*LogInResponse, error)
+	LogOut(context.Context, *LogOutRequest) (*LogOutResponse, error)
 	ForgotPassword(context.Context, *ForgotPasswordRequest) (*ForgotPasswordResponse, error)
 	UpdateUser(context.Context, *UpdateUserRequest) (*UpdateUserResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*ChangePasswordResponse, error)
 	UpdateDistanceTravelled(context.Context, *UpdateDistanceTravelledRequest) (*UpdateDistanceTravelledResponse, error)
 	AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error)
-	GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error)
+	// rpc GetToken (GetTokenRequest) returns (GetTokenResponse);
+	RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -171,6 +186,9 @@ func (UnimplementedUserServiceServer) SignUp(context.Context, *SignUpRequest) (*
 }
 func (UnimplementedUserServiceServer) LogIn(context.Context, *LogInRequest) (*LogInResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogIn not implemented")
+}
+func (UnimplementedUserServiceServer) LogOut(context.Context, *LogOutRequest) (*LogOutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LogOut not implemented")
 }
 func (UnimplementedUserServiceServer) ForgotPassword(context.Context, *ForgotPasswordRequest) (*ForgotPasswordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForgotPassword not implemented")
@@ -190,8 +208,8 @@ func (UnimplementedUserServiceServer) UpdateDistanceTravelled(context.Context, *
 func (UnimplementedUserServiceServer) AuthenticateUser(context.Context, *AuthenticateUserRequest) (*AuthenticateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthenticateUser not implemented")
 }
-func (UnimplementedUserServiceServer) GetToken(context.Context, *GetTokenRequest) (*GetTokenResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetToken not implemented")
+func (UnimplementedUserServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*RefreshTokenResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RefreshToken not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -246,6 +264,24 @@ func _UserService_LogIn_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).LogIn(ctx, req.(*LogInRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_LogOut_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LogOutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).LogOut(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_LogOut_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).LogOut(ctx, req.(*LogOutRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -358,20 +394,20 @@ func _UserService_AuthenticateUser_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _UserService_GetToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetTokenRequest)
+func _UserService_RefreshToken_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RefreshTokenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(UserServiceServer).GetToken(ctx, in)
+		return srv.(UserServiceServer).RefreshToken(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: UserService_GetToken_FullMethodName,
+		FullMethod: UserService_RefreshToken_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).GetToken(ctx, req.(*GetTokenRequest))
+		return srv.(UserServiceServer).RefreshToken(ctx, req.(*RefreshTokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -390,6 +426,10 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LogIn",
 			Handler:    _UserService_LogIn_Handler,
+		},
+		{
+			MethodName: "LogOut",
+			Handler:    _UserService_LogOut_Handler,
 		},
 		{
 			MethodName: "ForgotPassword",
@@ -416,8 +456,8 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_AuthenticateUser_Handler,
 		},
 		{
-			MethodName: "GetToken",
-			Handler:    _UserService_GetToken_Handler,
+			MethodName: "RefreshToken",
+			Handler:    _UserService_RefreshToken_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

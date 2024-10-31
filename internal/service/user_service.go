@@ -3,18 +3,17 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"reflect"
 	"time"
 
 	"github.com/haiyen11231/eco-taxi-backend-user-service/config"
+	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/cache"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/grpc/pb"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/model"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/repository"
 
-	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -71,13 +70,42 @@ func (s *UserServiceServer) LogIn(ctx context.Context, req *pb.LogInRequest) (*p
 		return nil, err
 	}
 
-	token, err := generateToken(user)
+
+	accessToken, err := GenerateToken(user.Id, 15*time.Minute)
 	if err != nil {
-		log.Println("Failed to generate token:", err.Error())
-		return nil, errors.New("Invalid Phone Number or Password")
+		log.Println("Failed to generate access token:", err.Error())
+		return nil, err
 	}
 
-	return &pb.LogInResponse{Token: token}, nil
+	refreshToken, err := GenerateToken(user.Id, 24*time.Hour)
+	if err != nil {
+		log.Println("Failed to generate refresh token:", err.Error())
+		return nil, err
+	}
+
+	rdb := config.Redis
+	sessionCache := cache.NewSessionCache(rdb)
+
+	err = sessionCache.StoreRefreshToken(ctx, user.Id, refreshToken)
+
+	if err != nil {
+		log.Println("Failed to store refresh token:", err.Error())
+		return nil, err
+	}
+
+	return &pb.LogInResponse{Id: user.Id, AccessToken: accessToken}, nil
+}
+
+func (s *UserServiceServer) LogOut(ctx context.Context, req *pb.LogOutRequest) (*pb.LogOutResponse, error) {
+	rdb := config.Redis
+	sessionCache := cache.NewSessionCache(rdb)
+
+	err := sessionCache.DeleteRefreshToken(ctx, req.Id)
+	if err != nil {
+		log.Println("Failed to logout:", err.Error())
+		return nil, err
+	}
+	return &pb.LogOutResponse{Message: "User logged out successfully"}, nil
 }
 
 func (s *UserServiceServer) ForgotPassword(ctx context.Context, req *pb.ForgotPasswordRequest) (*pb.ForgotPasswordResponse, error) {
@@ -103,7 +131,7 @@ func (s *UserServiceServer) ForgotPassword(ctx context.Context, req *pb.ForgotPa
 		return nil, err
 	}
 
-	return &pb.ForgotPasswordResponse{Message: "Password resetted!"}, nil
+	return &pb.ForgotPasswordResponse{Message: "Password reset successfully!"}, nil
 }
 
 func (s *UserServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRequest) (*pb.UpdateUserResponse, error) {
@@ -125,7 +153,7 @@ func (s *UserServiceServer) UpdateUser(ctx context.Context, req *pb.UpdateUserRe
 		return nil, err
 	}
 
-	return &pb.UpdateUserResponse{Message: "User updated!"}, nil
+	return &pb.UpdateUserResponse{Message: "User updated successfully!"}, nil
 }
 
 func (s *UserServiceServer) GetUser(ctx context.Context, req *pb.GetUserRequest) (*pb.GetUserResponse, error) {
@@ -186,7 +214,7 @@ func (s *UserServiceServer) ChangePassword(ctx context.Context, req *pb.ChangePa
 		return nil, err
 	}
 
-	return &pb.ChangePasswordResponse{Message: "Password resetted!"}, nil
+	return &pb.ChangePasswordResponse{Message: "Password updated successfully!"}, nil
 }
 
 func (s *UserServiceServer) UpdateDistanceTravelled(ctx context.Context, req *pb.UpdateDistanceTravelledRequest) (*pb.UpdateDistanceTravelledResponse, error) {
@@ -212,18 +240,18 @@ func (s *UserServiceServer) UpdateDistanceTravelled(ctx context.Context, req *pb
 		return nil, err
 	}
 
-	return &pb.UpdateDistanceTravelledResponse{Message: "Distance travelled updated!"}, nil
+	return &pb.UpdateDistanceTravelledResponse{Message: "Distance updated successfully!"}, nil
 }
 
 func (s *UserServiceServer) AuthenticateUser(ctx context.Context, req *pb.AuthenticateUserRequest) (*pb.AuthenticateUserResponse, error) {
 	if req.Token == "" {
-		return &pb.AuthenticateUserResponse{Valid: false, Message: "Token is required"}, errors.New("Token is required")
+		return &pb.AuthenticateUserResponse{IsValid: false, Message: "Token is required"}, errors.New("Token is required")
 	}
 
-	parsedId, err := parseToken(req.Token, os.Getenv("JWT_SECRET"))
+	parsedId, err := ParseToken(req.Token, os.Getenv("JWT_SECRET"))
 	if err != nil {
 		log.Println("Failed to parse token:", err.Error())
-		return &pb.AuthenticateUserResponse{Valid: false, Message: err.Error()}, err
+		return &pb.AuthenticateUserResponse{IsValid: false, Message: err.Error()}, err
 	}
 	log.Printf("Extracted claims ID: %v", parsedId)
 
@@ -231,56 +259,28 @@ func (s *UserServiceServer) AuthenticateUser(ctx context.Context, req *pb.Authen
 	err = config.DB.Model(&model.User{}).Where("id = ?", parsedId).First(user).Error
 	if err != nil || reflect.DeepEqual(user, &pb.User{}) {
 		log.Println("Failed to get users:", err.Error())
-		return &pb.AuthenticateUserResponse{Valid: false, Message: "Invalid Credentials!"}, errors.New("Invalid credentials")
+		return &pb.AuthenticateUserResponse{IsValid: false, Message: "Invalid Credentials!"}, errors.New("Invalid credentials")
 	}
 
 	log.Printf("User found with ID: %v", user.Id)
-	return &pb.AuthenticateUserResponse{Valid: true, Message: "Authenticated!", UserId: uint64(user.Id)}, nil
+	return &pb.AuthenticateUserResponse{IsValid: true, Message: "Authenticated!", UserId: uint64(user.Id)}, nil
 }
 
-func generateToken(user *model.User) (string, error) {
-	// Creating the token with user ID and expiration time
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":  user.Id,
-		"exp": time.Now().Add(time.Hour * 24 * 2).Unix(),
-	})
-	
-	// Sign the token and return it as a string
-	return token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-}
+func (s *UserServiceServer) RefreshToken (ctx context.Context, req *pb.RefreshTokenRequest) (*pb.RefreshTokenResponse, error) {
+	rdb := config.Redis
+	sessionCache := cache.NewSessionCache(rdb)
 
-func parseToken(tokenString, secret string) (int64, error) {
-	// Parsing the token
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Validate that the signing method is HMAC
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return []byte(secret), nil
-	})
-
+	userId, err := sessionCache.GetUserIdFromRefreshToken(ctx, req.RefreshToken)
 	if err != nil {
-		log.Println("Error parsing token:", err)
-		return 0, err
+		return nil, err
 	}
 
-	// Extract claims and validate them
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if ok && token.Valid {
-		// Verify token expiration
-		if !claims.VerifyExpiresAt(time.Now().Unix(), true) {
-			return 0, errors.New("token expired")
-		}
-
-		// Convert the "id" claim to int64
-		idFloat, ok := claims["id"].(float64)
-		if !ok {
-			return 0, errors.New("invalid ID format in token")
-		}
-
-		return int64(idFloat), nil
+	newAccessToken, err := GenerateToken(userId, 15*time.Minute)
+	if err != nil {
+		return nil, err
 	}
-	return 0, errors.New("Invalid token")
+
+	return &pb.RefreshTokenResponse{AccessToken: newAccessToken}, nil
 }
 
 // func GetUserById(db *gorm.DB) func(c *gin.Context) {
