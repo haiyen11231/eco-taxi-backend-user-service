@@ -20,15 +20,20 @@ func main() {
 	r := gin.Default()
 	log.Println("Starting User Service")
 	
-	err := config.ConnectToMySQL()
-	if err != nil {
+	
+	if err := config.ConnectToMySQL(); err != nil {
 		log.Panic("Failed to connect to MySQL:", err)
+	}
+
+	
+	if err := config.ConnectToRedis(); err != nil {
+		log.Panic("Failed to connect to Redis:", err)
 	}
 
 	go listenGRPC()
 
-	err = r.Run(fmt.Sprintf(":%s", os.Getenv("PORT")))
-	if err != nil {
+	
+	if err := r.Run(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
 		log.Panic(err)
 	}
 	

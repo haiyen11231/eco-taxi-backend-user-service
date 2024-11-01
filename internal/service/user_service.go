@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -86,6 +87,10 @@ func (s *UserServiceServer) LogIn(ctx context.Context, req *pb.LogInRequest) (*p
 	rdb := config.Redis
 	sessionCache := cache.NewSessionCache(rdb)
 
+	if sessionCache == nil {
+        return nil, fmt.Errorf("Session Cache is not initialized")
+    }
+
 	err = sessionCache.StoreRefreshToken(ctx, user.Id, refreshToken)
 
 	if err != nil {
@@ -93,7 +98,7 @@ func (s *UserServiceServer) LogIn(ctx context.Context, req *pb.LogInRequest) (*p
 		return nil, err
 	}
 
-	return &pb.LogInResponse{Id: user.Id, AccessToken: accessToken}, nil
+	return &pb.LogInResponse{Id: user.Id, AccessToken: accessToken, RefreshToken: refreshToken}, nil
 }
 
 func (s *UserServiceServer) LogOut(ctx context.Context, req *pb.LogOutRequest) (*pb.LogOutResponse, error) {

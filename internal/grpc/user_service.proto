@@ -48,6 +48,7 @@ message LogInRequest {
 message LogInResponse {
     uint64 id = 1;
     string access_token = 2;
+    string refresh_token = 3;
 }
 
 message LogOutRequest {
