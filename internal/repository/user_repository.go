@@ -33,7 +33,7 @@ func (userRepo *userRepo) LogIn(ctx context.Context, data *model.LogInUserData) 
 	var user model.User
 	
 	if err := userRepo.db.Where("phone_number = ?", data.PhoneNumber).First(&user).Error; err != nil {
-		log.Println("Failed to get user by username:", err.Error())
+		log.Println("Failed to get user by phone_number:", err.Error())
 		return nil, errors.New("Invalid Phone Number or Password")
 	}
 
