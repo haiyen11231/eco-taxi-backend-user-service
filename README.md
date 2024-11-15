@@ -28,14 +28,17 @@ eco-taxi-backend-user-service/
 │   └── redis_config.go
 │
 ├── internal/
+│   ├── cache/
+│   │   └── session_cache.go
+│   │
 │   ├── model/
 │   │   └── user.go
 │   │
 │   ├── repository/
-│   │   ├── user_repository.go
-│   │   └── token_repository.go
+│   │   └── user_repository.go
 │   │
 │   ├── service/
+│   │   ├── jwt_service.go
 │   │   └── user_service.go
 │   │
 │   ├── route/
@@ -51,9 +54,6 @@ eco-taxi-backend-user-service/
 │   └── script/
 │       └── migrations/
 │
-├── Dockerfile
-├── docker-compose.yml
-├── Makefile
 ├── deployment/
 │   ├── deployment.yaml
 │   ├── service.yaml
@@ -65,6 +65,11 @@ eco-taxi-backend-user-service/
 │   └── swagger.yaml
 │
 ├── .gitignore
+├── app.env
+├── Dockerfile
+├── go.mod
+├── go.sum
+├── Makefile
 └── README.md
 ```
 
