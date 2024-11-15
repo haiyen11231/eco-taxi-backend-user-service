@@ -51,16 +51,16 @@ func listenGRPC() {
 	gRPCPort := os.Getenv("GRPC_PORT")
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", gRPCPort))
 	if err != nil {
-		log.Fatalf("Failed to listen for gRPC Auth: %v", err)
+		log.Fatalf("Failed to listen for gRPC User Service: %v", err)
 	}
 
 	s := grpc.NewServer()
 
 	pb.RegisterUserServiceServer(s, &service.UserServiceServer{})
 
-	log.Printf("gRPC Auth Server started on port %s", gRPCPort)
+	log.Printf("gRPC User Service server started on port %s", gRPCPort)
 
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Failed to listen for gRPC Auth: %v", err)
+		log.Fatalf("Failed to listen for gRPC User Service server: %v", err)
 	}
 }

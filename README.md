@@ -1,6 +1,16 @@
-# Project Structure
+# EcoTaxi Backend - User Service
 
-This project follows the [golang-standards/project-layout](https://github.com/golang-standards/project-layout) guidelines. Below is the structure of the project and an explanation of each folder and file.
+EcoTaxi Backend - User Service is responsible for handling user-related requests received from the API Gateway. It processes these requests using [Gin](https://github.com/gin-gonic/gin) for routing, [GORM](https://gorm.io/docs/) for interacting with [MySQL](https://dev.mysql.com/doc/), and [Redis](https://redis.io/docs/latest/develop/get-started/) to cache user tokens.
+
+## Git Repositories
+
+This project is part of the EcoTaxi ecosystem, which includes multiple repositories for the frontend, backend services, and API gateway:
+
+- **Frontend**: [EcoTaxi Frontend](https://github.com/haiyen11231/eco-taxi-frontend.git)
+- **API Gateway**: [EcoTaxi API Gateway](https://github.com/haiyen11231/eco-taxi-api-gateway.git)
+- **User Service**: [EcoTaxi User Service](https://github.com/haiyen11231/eco-taxi-backend-user-service.git)
+- **Payment Service**: [EcoTaxi Payment Service](https://github.com/AWYS7/eco-taxi-payment-service.git)
+- **Trip Service**: [EcoTaxi Trip Service](https://github.com/lukea11/eco-taxi-backend-trip-service.git)
 
 ## Directory Structure
 
@@ -9,208 +19,117 @@ eco-taxi-backend-user-service/
 │
 ├── cmd/
 │   └── user_service/
-│       └── main.go               # Main entry point, initializes the service and starts the server
+│       └── main.go
 │
-├── config/                       # Configuration settings (database, Redis, gRPC endpoints, etc.)
-│   ├── config.go                 # Main config loading
-│   ├── grpc_config.go            # gRPC-specific configuration
-│   ├── mysql_config.go           # MySQL-specific configuration
-│   └── redis_config.go           # Redis-specific configuration
+├── config/
+│   ├── config.go
+│   ├── grpc_config.go
+│   ├── mysql_config.go
+│   └── redis_config.go
 │
 ├── internal/
-│   ├── model/                    # Models represent the data structure (MVC: Model)
-│   │   └── user.go               # User entity definition (GORM model)
+│   ├── model/
+│   │   └── user.go
 │   │
-│   ├── repository/               # Handles database operations (MVC: Model)
-│   │   ├── user_repository.go    # User repository with GORM methods (CRUD operations)
-│   │   └── token_repository.go   # Manages refresh token storage and retrieval
+│   ├── repository/
+│   │   ├── user_repository.go
+│   │   └── token_repository.go
 │   │
-│   ├── service/                  # Business logic (MVC: Controller)
-│   │   └── user_service.go       # Core user-related logic (signup, login, update profile)
+│   ├── service/
+│   │   └── user_service.go
 │   │
-│   ├── route/                    # Handles API endpoints (MVC: Controller)
-│   │   ├── routes.go             # API route definitions (Gin handlers for each endpoint)
-│   │   └── swagger.go            # Swagger configuration for API documentation
+│   ├── route/
+│   │   ├── routes.go
+│   │   └── swagger.go
 │   │
-│   ├── grpc/                     # gRPC communication setup
+│   ├── grpc/
 │   │   ├── user_service.proto
 │   │   └── pb/
 │   │       ├── user_service_grpc.pb.go
 │   │       └── user_service.pb.go
 │   │
 │   └── script/
-│       └── migrations/            # Database migration scripts (for versioning schema)
+│       └── migrations/
 │
-├── Dockerfile                    # Dockerfile for building the service container
-├── docker-compose.yml            # Docker Compose file for local development with dependencies (optional if using Kubernetes)
-├── Makefile                      # Build and run commands for the project
-├── deployment/                   # Kubernetes manifests
-│   ├── deployment.yaml           # Kubernetes deployment config for the service
-│   ├── service.yaml              # Kubernetes service config (exposing the service)
-│   └── ingress.yaml              # Ingress config for external access (optional)
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+├── deployment/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   └── ingress.yaml
 │
-├── docs/                         # API documentation
-│   ├── api.md                    # API description and usage guide
-│   ├── swagger.json              # Swagger JSON file for API documentation
-│   └── swagger.yaml              # Swagger YAML file for API documentation
+├── docs/
+│   ├── api.md
+│   ├── swagger.json
+│   └── swagger.yaml
 │
-├── .gitignore                    # Git ignore file to exclude certain files from version control
-└── README.md                     # Project documentation
+├── .gitignore
+└── README.md
 ```
 
-## Directory Details
+## Prerequisites
 
-### `cmd/`
+Before you begin, ensure that you have the following installed:
 
-Contains the main application entry point.
+- **Go**
+- **gRPC Tools** (Protocol Buffers and gRPC Go)
+- **MySQL**
+- **Redis**
+- **Make**
+- **Docker** (optional, for containerization)
 
-- **`user_service/`**
-  - **`main.go`**: Initializes and runs the User Service application.
+## Installation
 
-### `config/`
-
-Contains configuration settings for various services like the database, Redis, and gRPC.
-
-- **`config.go`**: Main configuration loader, orchestrating the loading of individual configurations.
-- **`grpc_config.go`**: gRPC-specific configuration settings.
-- **`mysql_config.go`**: MySQL database configuration settings.
-- **`redis_config.go`**: Redis-specific configuration settings.
-
-### `internal/`
-
-Contains the core application code, which includes authentication, business logic, database interactions, and gRPC setup.
-
-- **`model/`**
-
-  - **`user.go`**: Defines the User entity with GORM annotations.
-
-- **`repository/`**
-
-  - **`user_repository.go`**: Handles CRUD operations for user data using GORM.
-
-- **`service/`**
-
-  - **`user_service.go`**: Core business logic related to user registration, login, profile management, etc.
-
-- **`route/`**
-
-  - **`routes.go`**: Defines all API routes, mapping each endpoint to the corresponding handler.
-  - **`swagger.go`**: Configures Swagger for API documentation, providing UI access to explore and test the APIs.
-
-- **`grpc/`**
-
-  - **`user_service.proto`**: Defines the gRPC methods and messages for the User Service.
-  - **`pb/`**
-    - **`user_service_grpc.pb.go`**
-    - **`user_service.pb.go`**
-
-- **`script/`**
-  - **`migration/`**: Contains database migration scripts for versioning schema changes.
-
-### `Dockerfile`
-
-Dockerfile for building the User Service application image, specifying the base image and build steps.
-
-### `docker-compose.yml`
-
-Optional Docker Compose file for local development to manage dependencies like MySQL, Redis, etc., along with the user service.
-
-### `Makefile`
-
-Defines the build and run commands for the project, simplifying the development workflow.
-
-### `deployment/`
-
-Contains Kubernetes manifests for deploying the User Service in a Kubernetes cluster.
-
-- **`deployment.yaml`**: Defines the deployment configuration, including replica settings and resource limits.
-- **`service.yaml`**: Exposes the User Service within the Kubernetes cluster using a Kubernetes Service object.
-- **`ingress.yaml`**: (Optional) Configures Ingress for external access to the service.
-
-### `docs/`
-
-Contains API documentation, including Swagger files for generating and viewing API specs.
-
-- **`api.md`**: Detailed API description and usage guide.
-- **`swagger.json`**: Swagger file in JSON format for API documentation.
-- **`swagger.yaml`**: Swagger file in YAML format for API documentation.
-
-### Root Directory
-
-- **`.gitignore`**: Specifies which files and directories to exclude from version control (e.g., environment files, build artifacts).
-- **`README.md`**: Project documentation and directory details.
-- **`Dockerfile`**: Defines how to build the Docker image for the service.
-- **`docker-compose.yml`**: Docker Compose file for managing the service and its dependencies.
-- **`Makefile`**: Automates common tasks such as running, building, and testing the application.
-
-### Setting Up
-
-1. **Clone the Repository**
-
-   Clone this repository to your local machine using:
+1. Clone the repository:
 
    ```bash
    git clone https://github.com/haiyen11231/eco-taxi-backend-user-service.git
    cd eco-taxi-backend-user-service
    ```
 
-### Build and Run the Docker Application
+2. Create the app.env file:
 
-Use Docker Compose to build and run the containers. This command will:
+Create a `app.env` file in the root directory of the project. This file should contain the environment variables required for the application to run. Here's a sample `app.env` file:
 
-1. Build the Docker images for your application based on the `Dockerfile`.
-2. Start the containers as defined in the `docker-compose.yml` file.
+```env
+# Database configuration
+MYSQL_HOST=mysql_host
+MYSQL_PORT=mysql_port
+MYSQL_USER=mysql_user
+MYSQL_PASSWORD=mysql_password
+MYSQL_DATABASE=mysql_db
 
-Run the following command in the root of your project directory:
+# Redis configuration
+REDIS_HOST=redis_host
+REDIS_PORT=redis_port
+REDIS_PASSWORD=redis_password
+REDIS_DB=0
 
-```bash
-docker-compose up --build
+# gRPC configuration
+GRPC_PORT=grpc_port
+
+JWT_SECRET=secret
+
+PORT=port
 ```
 
-- `--build`: Forces Docker Compose to rebuild the images even if they are up-to-date.
-- `--detach` or `-d`: Runs the containers in the background and prints the container IDs.
-- `--remove-orphans`: Removes containers for services not defined in the `docker-compose.yml` file.
+Update the values with your own configuration:
 
-To build and run the Docker application, execute the following command:
+- **`MYSQL_*`**: MySQL configuration (host, port, user, password, and database).
+- **`REDIS_*`**: Redis configuration (host, port, password, and DB number).
+- **`GRPC_PORT`**: Port on which the gRPC server for User Service will run (e.g., localhost:5002).
+- **`JWT_SECRET`**: Secret key used for signing and verifying JWT tokens.
+- **`PORT`**: Define the port number on which the User Service API will listen (e.g., 8082).
 
-```bash
-docker-compose up --build
-```
+3. Install dependencies:
 
-This command will build the Docker images as defined in the `Dockerfile` and `docker-compose.yml` file, then start the containers in the background. If you make changes to the Dockerfile or dependencies, you can re-run this command to rebuild the images and restart the containers.
+   ```bash
+   go mod tidy
+   ```
 
-After running the application, you can access the application at `http://localhost:8080`.
+4. Start the development server:
 
-To stop and remove the application, networks, and volumes created by `docker-compose up`, use the following command:
-
-```bash
-docker-compose down
-```
-
-This command will stop the running application and remove them, along with the networks and volumes that were created. It is useful for cleaning up after development or when you want to ensure a fresh start.
-
-If you need to stop the application without removing them, you can use:
-
-```bash
-docker-compose stop
-```
-
-This will stop the running application but leave them in place, so they can be restarted later.
-
-To restart the application, you can use:
-
-```bash
-docker-compose start
-```
-
-This command starts the stopped application without rebuilding the images. It is a quick way to resume your application if you need to pause and resume development or testing.
-
-To remove all application, networks, and volumes defined in your docker-compose.yml, you can use:
-
-```bash
-docker-compose down --volumes
-```
-
-This command stops and removes the application, networks, and volumes associated with it. It is useful for cleaning up your environment or ensuring a fresh start.
-
-For more detailed information on Docker Compose commands and options, refer to the [official Docker Compose documentation](https://docs.docker.com/compose/).
+   ```bash
+   make run
+   ```

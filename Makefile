@@ -4,6 +4,9 @@ gen:
 clean:
 	rm internal/grpc/pb/*.go
 
+run:
+	go run cmd/user_service/main.go
+
 new_migration:
 	docker run -it --rm \
  		-v "$(shell pwd)/internal/script/migrations:/db/migrations" \
