@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 
+	// emailverifier "github.com/AfterShip/email-verifier"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/config"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/grpc/pb"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/service"
@@ -14,6 +15,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
+
+// var (
+// 	verifier = emailverifier.NewVerifier()
+// )
 
 func main() {
 	loadEnv()

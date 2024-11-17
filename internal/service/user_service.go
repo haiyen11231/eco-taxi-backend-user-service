@@ -14,6 +14,7 @@ import (
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/grpc/pb"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/model"
 	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/repository"
+	"github.com/haiyen11231/eco-taxi-backend-user-service/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,6 +46,14 @@ func (s *UserServiceServer) SignUp(ctx context.Context, req *pb.SignUpRequest) (
 
 	if err := userRepo.SignUp(ctx, signUpData); err != nil {
 		log.Println("Failed to signup:", err.Error())
+		return nil, err
+	}
+
+	// Send verification email
+	verificationLink := "http://localhost:5173"
+	emailBody := fmt.Sprintf("Hello %s, <br> Please verify your email by clicking <a href='%s'>here</a> and log in.", req.Name, verificationLink)
+	if err := utils.SendEmail(req.Email, "Verify Your Email", emailBody); err != nil {
+		log.Println("Failed to send verification email:", err.Error())
 		return nil, err
 	}
 
@@ -133,6 +142,14 @@ func (s *UserServiceServer) ForgotPassword(ctx context.Context, req *pb.ForgotPa
 
 	if err := userRepo.ForgotPassword(ctx, forgotPasswordUserData, req.Email); err != nil {
 		log.Println("Failed to reset password:", err.Error())
+		return nil, err
+	}
+
+	// Send verification email
+	verificationLink := "http://localhost:5173"
+	emailBody := fmt.Sprintf("<br> Please verify your email by clicking <a href='%s'>here</a> to change your password and log in.", verificationLink)
+	if err := utils.SendEmail(req.Email, "Verify Your Email", emailBody); err != nil {
+		log.Println("Failed to send verification email:", err.Error())
 		return nil, err
 	}
 
