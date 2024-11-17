@@ -51,8 +51,11 @@ eco-taxi-backend-user-service/
 │   │       ├── user_service_grpc.pb.go
 │   │       └── user_service.pb.go
 │   │
-│   └── script/
-│       └── migrations/
+│   ├── script/
+│   │   └── migrations/
+│   │
+│   └── utils/
+│       └── email.go
 │
 ├── deployment/
 │   ├── deployment.yaml
